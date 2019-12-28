@@ -25,7 +25,11 @@ def extract_score_tuples(contents):
 		final_score = int(final_score_elem.text)
 		# This will look like: 'UTSA (1-1)' or '(4) Oklahoma (2-0)'
 		team_with_record = team_elem.text
-		team_pieces = [piece for piece in team_with_record.split() if '(' not in piece]
+		team_pieces = team_with_record.split()
+		if team_pieces[0].startswith('('):
+			del team_pieces[0]
+		if team_pieces[-1].startswith('('):
+			del team_pieces[-1]
 		team_no_record = ' '.join(team_pieces)
 		return team_no_record, final_score
 

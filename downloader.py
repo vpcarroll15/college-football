@@ -4,7 +4,7 @@ Downloads all the raw data that we need in order to create our prediction engine
 import subprocess
 
 
-YEARS_OF_INTEREST = list(range(2010, 2019))
+YEARS_OF_INTEREST = [2019]
 WEEKS_IN_SEASON = list(range(1, 16))
 ROOT_URL = "https://www.footballdb.com/college-football/scores.html?lg=FBS&type=reg"
 

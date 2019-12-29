@@ -1,3 +1,7 @@
+"""
+Rank college football teams according to elo ranking.
+"""
+
 import csv
 
 

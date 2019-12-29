@@ -4,16 +4,20 @@ Downloads all the raw data that we need in order to create our prediction engine
 import subprocess
 
 
-YEARS_OF_INTEREST = [2019]
-WEEKS_IN_SEASON = list(range(1, 16))
-ROOT_URL = "https://www.footballdb.com/college-football/scores.html?lg=FBS&type=reg"
+YEARS_OF_INTEREST = list(range(2010, 2020))
+MAX_WEEK = 16
+WEEKS_IN_SEASON = list(range(1, MAX_WEEK))
+ROOT_URL = "https://www.footballdb.com/college-football/scores.html?lg=FBS"
 
 target_urls = []
 target_filenames = []
 for year in YEARS_OF_INTEREST:
 	for week in WEEKS_IN_SEASON:
-		target_urls.append(ROOT_URL + "&yr={}&wk={}".format(year, week))
+		target_urls.append(ROOT_URL + "&type=reg&yr={}&wk={}".format(year, week))
 		target_filenames.append('raw_data/year-{}-week-{}.html'.format(year, week))
+	target_urls.append(ROOT_URL + "&type=post&yr={}".format(year))
+	target_filenames.append('raw_data/year-{}-week-{}.html'.format(year, MAX_WEEK))
+
 
 for url, filename in zip(target_urls, target_filenames):
 	print("Downloading {} to {}...".format(url, filename))

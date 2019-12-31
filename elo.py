@@ -45,9 +45,9 @@ class EloMachine:
 
 		# Adjust the ratings according to where the game was played. If the game was played at a neutral site,
 		# no adjustment is necessary.
-		if winning_team_location == WinningTeamLocation.HOME:
+		if team1_location == WinningTeamLocation.HOME:
 			initial_rating_winner += self.home_team_advantage
-		elif winning_team_location == WinningTeamLocation.ROAD:
+		elif team1_location == WinningTeamLocation.ROAD:
 			initial_rating_winner -= self.home_team_advantage
 
 		expected_outcome_winner = self.expected_outcome(initial_rating_winner, initial_rating_loser)
@@ -132,6 +132,9 @@ if __name__ == "__main__":
 		for year, week, visiting_school, visiting_score, home_school, home_score in scores_reader:
 			year = int(year)
 			week = int(week)
+			visiting_score = int(visiting_score)
+			home_score = int(home_score)
+
 			# We don't actually know which games are neutral-site games, unfortunately. We just know
 			# that bowl games are at neutral sites.
 			if week == 16:
@@ -148,5 +151,6 @@ if __name__ == "__main__":
 
 			elo.update_ratings_with_result(winning_team, losing_team, winning_team_location,
 										   include_in_log_loss=(year in range(2013, 2019)))
+
 	print(elo.get_players_by_descending_rating()[:25])
 	print(elo.log_loss)

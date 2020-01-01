@@ -93,7 +93,7 @@ class EloMachine:
 		self.player_to_rating = player_to_new_rating
 
 
-class GridParameterSearch:
+class GridParameterGenerator:
 	"""
 	A ParameterSearch class that implements the grid search strategy.
 	"""
@@ -122,10 +122,43 @@ class GridParameterSearch:
 				season_regression = self.season_regression_min
 				while season_regression < self.season_regression_max:
 					yield k, home_field, season_regression
-					season_regression += self.season_regression_step 
+					season_regression += self.season_regression_step
+
+
+class ParameterTester:
+	"""
+	The class that carries out the search for optimal parameters, according to some strategy that is given to it.
+	"""
+	def __init__(self, scores, parameter_generator_obj):
+		self.scores = scores
+		self.parameter_generator = parameter_generator_obj.get_next_params()
+
+	def optimize(self):
+		"""
+		Runs a full optimization cycle, consuming its parameter generator.
+		"""
+		# Prime the parameter generator and get our first set of parameters.
+		k, home_field, season_regression = self.parameter_generator.send(None)
+		while True:
+			pass
+
+
+		pass
+
+
+
+
+
 
 
 if __name__ == "__main__":
+	scores = []
+	with open('scores.csv', newline='') as csvfile:
+		scores_reader = csv.reader(csvfile)
+		for year, week, visiting_school, visiting_score, home_school, home_score in scores_reader:
+			scores.append((int(year), int(week), visiting_school, int(visiting_score), home_school, int(home_score)))
+	searcher = ParameterSearcher(scores, GridParameterGenerator())
+
 	elo = EloMachine()
 	with open('scores.csv', newline='') as csvfile:
 		scores_reader = csv.reader(csvfile)

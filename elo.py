@@ -333,7 +333,7 @@ if __name__ == "__main__":
     top_25 = searcher.best_elo.get_players_with_ratings_descending_order()[:25]
     print("Introducing the top 25 of 2019...")
     for i, (player, rating) in enumerate(top_25):
-        print("{}) {} ({})".format(i + 1, player, rating))
+        print("{}) {} ({})".format(i + 1, player, int(rating)))
     searcher.plot_one_field("k", outfile="k.png")
     searcher.plot_one_field("home_field", outfile="home_field.png")
     searcher.plot_one_field("season_regression", outfile="season_regression.png")

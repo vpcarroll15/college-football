@@ -144,8 +144,6 @@ class GridParameterGenerator:
         """
         A generator function for the next values of k, home_field_advantage, and season_regression that we
         should try.
-
-        Ignores input to the generator function.
         """
         for k in range(self.k_min, self.k_max + 1, self.k_step):
             for home_field in range(
@@ -153,8 +151,64 @@ class GridParameterGenerator:
             ):
                 season_regression = self.season_regression_min
                 while season_regression < self.season_regression_max:
-                    yield k, home_field, season_regression
+                    print(
+                        "Trying parameters k={}, home_field={}, season_regression={}...".format(
+                            k, home_field, season_regression
+                        )
+                    )
+                    loss = yield k, home_field, season_regression
+                    print("Loss: {}".format(loss))
                     season_regression += self.season_regression_step
+
+
+class GradientParameterGenerator:
+    """
+    A ParameterSearch class that implements a simple form of gradient descent.
+    """
+    # We should vary each of the parameter by different orders of magnitude in order to perform a true optimization.
+    GRADIENT_SCALING_FACTORS = [1, 1, 0.01]
+
+    def __init__(
+      self,
+      k_start=100,
+      home_field_start=50,
+      season_regression_start=0.9,
+    ):
+        self.k_start = k_start
+        self.home_field_start = home_field_start
+        self.season_regression_start = season_regression_start
+
+    def _apply_one_delta(self, params, i, delta):
+        test_params = list(params)
+        test_params[i] += self.GRADIENT_SCALING_FACTORS[i] * delta
+        return tuple(test_params)
+
+    def get_next_params(self):
+        """
+        A generator function for the next values of k, home_field_advantage, and season_regression that we
+        should try.
+        """
+        params = (self.k_start, self.home_field_start, self.season_regression_start)
+        delta = 3
+
+        best_loss = yield params
+
+        while delta > 0.1:
+            competing_losses_and_params = []
+            for i in range(len(params)):
+                increase_param = self._apply_one_delta(params, i, delta)
+                loss_increase_param = yield increase_param
+                decrease_param = self._apply_one_delta(params, i, -delta)
+                loss_decrease_param = yield decrease_param
+                competing_losses_and_params.extend([(loss_increase_param, increase_param),
+                                                    (loss_decrease_param, decrease_param)])
+            new_best_loss, new_best_params = min(competing_losses_and_params)
+            if new_best_loss < best_loss:
+                best_loss = new_best_loss
+                params = new_best_params
+                print("Accepting new best params ({}) because it produced loss of {}".format(params, best_loss))
+            else:
+                delta /= 3.0
 
 
 class ParameterTester:
@@ -227,17 +281,11 @@ class ParameterTester:
             except StopIteration:
                 break
             else:
-                print(
-                    "Trying parameters k={}, home_field={}, season_regression={}...".format(
-                        k, home_field, season_regression
-                    )
-                )
                 elo = self.run_one_cycle(k, home_field, season_regression)
                 if elo.log_loss < self.min_loss:
                     self.best_elo = elo
                     self.min_loss = elo.log_loss
                 last_loss = elo.log_loss
-                print("Loss: {}".format(last_loss))
 
                 self.results.append((last_loss, (k, home_field, season_regression)))
         self.results.sort()
@@ -329,11 +377,8 @@ if __name__ == "__main__":
             )
     searcher = ParameterTester(scores, GridParameterGenerator())
     searcher.optimize()
-    print(searcher.results[:10])
-    top_25 = searcher.best_elo.get_players_with_ratings_descending_order()[:25]
-    print("Introducing the top 25 of 2019...")
-    for i, (player, rating) in enumerate(top_25):
-        print("{}) {} ({})".format(i + 1, player, int(rating)))
+    best_loss, best_params = searcher.results[0]
+    print("Best params after initial grid search: {}".format(best_params))
     searcher.plot_one_field("k", outfile="k.png")
     searcher.plot_one_field("home_field", outfile="home_field.png")
     searcher.plot_one_field("season_regression", outfile="season_regression.png")
@@ -346,3 +391,11 @@ if __name__ == "__main__":
         "season_regression",
         outfile="home_field_and_season_regression.png",
     )
+    print("\n\nNow carrying out more refined search with gradient descent...")
+    searcher.parameter_generator_obj = GradientParameterGenerator(*best_params)
+    searcher.optimize()
+    print(searcher.results[:10])
+    top_25 = searcher.best_elo.get_players_with_ratings_descending_order()[:25]
+    print("Introducing the top 25 of 2019...")
+    for i, (player, rating) in enumerate(top_25):
+        print("{}) {} ({})".format(i + 1, player, int(rating)))

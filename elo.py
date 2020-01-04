@@ -401,7 +401,7 @@ if __name__ == "__main__":
                 )
             )
     searcher = ParameterTester(scores)
-    skip_grid_search = True
+    skip_grid_search = False
     if not skip_grid_search:
         searcher.optimize(GridParameterGenerator())
         best_loss, best_params = searcher.results[0]

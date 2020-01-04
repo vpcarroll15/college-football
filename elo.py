@@ -159,7 +159,9 @@ class GridParameterGenerator:
                             k, home_field, season_regression
                         )
                     )
-                    loss = yield dict(k=k, home_field=home_field, season_regression=season_regression)
+                    loss = yield dict(
+                        k=k, home_field=home_field, season_regression=season_regression
+                    )
                     print("Loss: {}".format(loss))
                     season_regression += self.season_regression_step
 
@@ -170,11 +172,11 @@ class GradientParameterGenerator:
     """
 
     def __init__(
-      self,
-      k=100,
-      home_field=50,
-      season_regression=0.9,
-      allow_different_k_different_weeks=False,
+        self,
+        k=100,
+        home_field=50,
+        season_regression=0.9,
+        allow_different_k_different_weeks=False,
     ):
         self.allow_different_k_different_weeks = allow_different_k_different_weeks
         self.k_start = k
@@ -187,6 +189,7 @@ class GradientParameterGenerator:
         Given a dict of params, the key in the params that we want to tweak, and the delta by which we want to
         tweak it, yields all the tweaked params.
         """
+
         def alter_params_helper(keys_list, delta):
             """
             Returns a fresh set of params, tweaked by delta.
@@ -216,7 +219,10 @@ class GradientParameterGenerator:
         A generator function for the next values of k, home_field_advantage, and season_regression that we
         should try.
         """
-        params = dict(home_field=self.home_field_start, season_regression=self.season_regression_start)
+        params = dict(
+            home_field=self.home_field_start,
+            season_regression=self.season_regression_start,
+        )
         if self.allow_different_k_different_weeks:
             params["k_list"] = [self.k_start] * WEEKS_IN_SEASON
         else:
@@ -230,14 +236,22 @@ class GradientParameterGenerator:
             competing_losses_and_params = []
             for key in params.keys():
                 scaled_delta = delta * 0.01 if key == "season_regression" else delta
-                for test_params in self._alter_params_for_key(params, key, scaled_delta):
+                for test_params in self._alter_params_for_key(
+                    params, key, scaled_delta
+                ):
                     param_loss = yield test_params
                     competing_losses_and_params.append((param_loss, test_params))
-            new_best_loss, new_best_params = min(competing_losses_and_params, key=lambda x: x[0])
+            new_best_loss, new_best_params = min(
+                competing_losses_and_params, key=lambda x: x[0]
+            )
             if new_best_loss < best_loss:
                 best_loss = new_best_loss
                 params = new_best_params
-                print("Accepting new best params ({}) because it produced loss of {}".format(params, best_loss))
+                print(
+                    "Accepting new best params ({}) because it produced loss of {}".format(
+                        params, best_loss
+                    )
+                )
             else:
                 delta /= 3.0
 
@@ -359,9 +373,9 @@ class ParameterTester:
 
         grouped_results = defaultdict(list)
         for log_loss, params in self.results:
-            grouped_results[
-                (params[first_field], params[second_field])
-            ].append(log_loss)
+            grouped_results[(params[first_field], params[second_field])].append(
+                log_loss
+            )
         grouped_results_flattened = {k: min(v) for k, v in grouped_results.items()}
 
         x_list = []
@@ -410,7 +424,9 @@ if __name__ == "__main__":
     if not skip_grid_search:
         searcher.optimize(GridParameterGenerator())
         best_loss, best_params = searcher.results[0]
-        print("Best params after initial grid search: {}".format(best_params, best_loss))
+        print(
+            "Best params after initial grid search: {}".format(best_params, best_loss)
+        )
 
     regenerate_plots = False
     if regenerate_plots:
@@ -418,8 +434,14 @@ if __name__ == "__main__":
         searcher.plot_one_field("home_field", outfile="home_field.png")
         searcher.plot_one_field("season_regression", outfile="season_regression.png")
         searcher.plot_two_fields("k", "home_field", outfile="k_and_home_field.png")
-        searcher.plot_two_fields("k", "season_regression", outfile="k_and_season_regression.png")
-        searcher.plot_two_fields("home_field", "season_regression", outfile="home_field_and_season_regression.png")
+        searcher.plot_two_fields(
+            "k", "season_regression", outfile="k_and_season_regression.png"
+        )
+        searcher.plot_two_fields(
+            "home_field",
+            "season_regression",
+            outfile="home_field_and_season_regression.png",
+        )
     print("\n\nNow carrying out more refined search with gradient descent...")
     if skip_grid_search:
         gradient_parameters = GradientParameterGenerator()
@@ -427,11 +449,25 @@ if __name__ == "__main__":
         gradient_parameters = GradientParameterGenerator(**best_params)
     searcher.optimize(gradient_parameters)
     best_loss, best_params = searcher.results[0]
-    print("Best params after gradient refinement: {} (loss={})".format(best_params, best_loss))
-    print("\n\nNow carrying out more refined search by allowing k to vary across weeks...")
-    searcher.optimize(GradientParameterGenerator(**best_params, allow_different_k_different_weeks=True))
+    print(
+        "Best params after gradient refinement: {} (loss={})".format(
+            best_params, best_loss
+        )
+    )
+    print(
+        "\n\nNow carrying out more refined search by allowing k to vary across weeks..."
+    )
+    searcher.optimize(
+        GradientParameterGenerator(
+            **best_params, allow_different_k_different_weeks=True
+        )
+    )
     best_loss, best_params = searcher.results[0]
-    print("Best params after allowing k to vary across weeks: {} (loss={})".format(best_params, best_loss))
+    print(
+        "Best params after allowing k to vary across weeks: {} (loss={})".format(
+            best_params, best_loss
+        )
+    )
     top_25 = searcher.best_elo.get_players_with_ratings_descending_order()[:25]
     print("Introducing the top 25 of 2019...")
     for i, (player, rating) in enumerate(top_25):

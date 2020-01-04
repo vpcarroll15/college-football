@@ -27,7 +27,22 @@ def test_elo_machine_prediction():
     assert pytest.approx(elo.expected_outcome(900, 1300), abs=1e-2) == 0.09
 
     elo.player_to_rating = {"Notre Dame": 900, "USC": 1100}
-    assert pytest.approx(elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.HOME)) == 0.50
-    assert pytest.approx(elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.NEUTRAL_SITE), abs=1e-2) == 0.24
-    assert pytest.approx(elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.ROAD), abs=1e-2) == 0.09
-
+    assert (
+        pytest.approx(
+            elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.HOME)
+        )
+        == 0.50
+    )
+    assert (
+        pytest.approx(
+            elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.NEUTRAL_SITE),
+            abs=1e-2,
+        )
+        == 0.24
+    )
+    assert (
+        pytest.approx(
+            elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.ROAD), abs=1e-2
+        )
+        == 0.09
+    )

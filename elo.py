@@ -229,9 +229,7 @@ class GradientParameterGenerator:
             params["k"] = self.k_start
 
         delta = 3
-
         best_loss = yield params
-
         while delta > 0.1:
             competing_losses_and_params = []
             for key in params.keys():

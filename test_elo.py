@@ -1,8 +1,10 @@
+import pytest
+
 from elo import *
 
 
 def test_grid_parameter_search():
-    searcher = GridParameterSearch(
+    searcher = GridParameterGenerator(
         k_min=1,
         k_max=2,
         k_step=1,
@@ -14,34 +16,18 @@ def test_grid_parameter_search():
         season_regression_step=0.05,
     )
     grid_params = list(searcher.get_next_params())
-    grid_params.sort()
-    assert grid_params == [
-        (1, 0, 0.0),
-        (1, 0, 0.05),
-        (1, 1, 0.0),
-        (1, 1, 0.05),
-        (2, 0, 0.0),
-        (2, 0, 0.05),
-        (2, 1, 0.0),
-        (2, 1, 0.05),
-    ]
+    assert len(grid_params) == 8
 
 
 def test_elo_machine_prediction():
     elo = EloMachine(home_team_advantage=200)
 
-    assert abs(elo.expected_outcome(900, 900) - 0.50) < 0.01
-    assert abs(elo.expected_outcome(900, 1100) - 0.24) < 0.01
-    assert abs(elo.expected_outcome(900, 1300) - 0.09) < 0.01
+    assert pytest.approx(elo.expected_outcome(900, 900)) == 0.50
+    assert pytest.approx(elo.expected_outcome(900, 1100), abs=1e-2) == 0.24
+    assert pytest.approx(elo.expected_outcome(900, 1300), abs=1e-2) == 0.09
 
     elo.player_to_rating = {"Notre Dame": 900, "USC": 1100}
-    assert (
-        elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.HOME) - 0.50
-    ) < 0.01
-    assert (
-        elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.NEUTRAL_SITE)
-        - 0.24
-    ) < 0.01
-    assert (
-        elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.ROAD) - 0.09
-    ) < 0.01
+    assert pytest.approx(elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.HOME)) == 0.50
+    assert pytest.approx(elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.NEUTRAL_SITE), abs=1e-2) == 0.24
+    assert pytest.approx(elo.predict_outcome("Notre Dame", "USC", WinningTeamLocation.ROAD), abs=1e-2) == 0.09
+

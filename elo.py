@@ -274,7 +274,7 @@ class ParameterTester:
 
             # We don't actually know which games are neutral-site games, unfortunately. We just know
             # that bowl games are at neutral sites.
-            if week == 16:
+            if week == WEEKS_IN_SEASON:
                 winning_team_location = WinningTeamLocation.NEUTRAL_SITE
             else:
                 if home_score > visiting_score:

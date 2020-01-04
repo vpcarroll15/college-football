@@ -5,6 +5,7 @@ import csv
 import enum
 from collections import defaultdict
 from math import log
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -17,6 +18,8 @@ WARMUP_YEARS = set(range(2010, 2013))
 # The next six years constitute our training set, against which we will try to minimize loss. (We reserve 2019 as our
 # test set.)
 TRAINING_YEARS = set(range(2013, 2019))
+
+WEEKS_IN_SEASON = 16
 
 
 class WinningTeamLocation(enum.Enum):
@@ -156,7 +159,7 @@ class GridParameterGenerator:
                             k, home_field, season_regression
                         )
                     )
-                    loss = yield k, home_field, season_regression
+                    loss = yield dict(k=k, home_field=home_field, season_regression=season_regression)
                     print("Loss: {}".format(loss))
                     season_regression += self.season_regression_step
 
@@ -165,43 +168,66 @@ class GradientParameterGenerator:
     """
     A ParameterSearch class that implements a simple form of gradient descent.
     """
-    # We should vary each of the parameter by different orders of magnitude in order to perform a true optimization.
-    GRADIENT_SCALING_FACTORS = [1, 1, 0.01]
 
     def __init__(
       self,
-      k_start=100,
-      home_field_start=50,
-      season_regression_start=0.9,
+      k=100,
+      home_field=50,
+      season_regression=0.9,
+      allow_different_k_different_weeks=False,
     ):
-        self.k_start = k_start
-        self.home_field_start = home_field_start
-        self.season_regression_start = season_regression_start
+        self.allow_different_k_different_weeks = allow_different_k_different_weeks
+        self.k_start = k
 
-    def _apply_one_delta(self, params, i, delta):
-        test_params = list(params)
-        test_params[i] += self.GRADIENT_SCALING_FACTORS[i] * delta
-        return tuple(test_params)
+        self.home_field_start = home_field
+        self.season_regression_start = season_regression
+
+    def _alter_params_for_key(self, params, key, delta):
+        """
+        Given a dict of params, the key in the params that we want to tweak, and the delta by which we want to
+        tweak it, yields all the tweaked params.
+        """
+        def alter_params_helper(keys_list, delta):
+            """
+            Returns a fresh set of params, tweaked by delta.
+            """
+            new_params = deepcopy(params)
+            value = new_params
+            for key in keys_list[:-1]:
+                value = new_params[key]
+            value[keys_list[-1]] += delta
+            return new_params
+
+        if key == "k_list":
+            for i in range(len(params["k_list"])):
+                yield alter_params_helper(["k_list", i], delta)
+                yield alter_params_helper(["k_list", i], -delta)
+        else:
+            yield alter_params_helper([key], delta)
+            yield alter_params_helper([key], -delta)
 
     def get_next_params(self):
         """
         A generator function for the next values of k, home_field_advantage, and season_regression that we
         should try.
         """
-        params = (self.k_start, self.home_field_start, self.season_regression_start)
+        params = dict(home_field=self.home_field_start, season_regression=self.season_regression_start)
+        if self.allow_different_k_different_weeks:
+            params["k_list"] = [self.k_start] * WEEKS_IN_SEASON
+        else:
+            params["k"] = self.k_start
+
         delta = 3
 
         best_loss = yield params
 
         while delta > 0.1:
             competing_losses_and_params = []
-            for i in range(len(params)):
-                increase_param = self._apply_one_delta(params, i, delta)
-                loss_increase_param = yield increase_param
-                decrease_param = self._apply_one_delta(params, i, -delta)
-                loss_decrease_param = yield decrease_param
-                competing_losses_and_params.extend([(loss_increase_param, increase_param),
-                                                    (loss_decrease_param, decrease_param)])
+            for key in params.keys():
+                scaled_delta = delta * 0.01 if key == "season_regression" else delta
+                for test_params in self._alter_params_for_key(params, key, scaled_delta):
+                    param_loss = yield test_params
+                    competing_losses_and_params.append((param_loss, test_params))
             new_best_loss, new_best_params = min(competing_losses_and_params)
             if new_best_loss < best_loss:
                 best_loss = new_best_loss
@@ -216,21 +242,18 @@ class ParameterTester:
     The class that carries out the search for optimal parameters, according to some strategy that is given to it.
     """
 
-    PARAMETERS = ["k", "home_field", "season_regression"]
-
-    def __init__(self, scores, parameter_generator_obj):
+    def __init__(self, scores):
         self.scores = scores
-        self.parameter_generator_obj = parameter_generator_obj
 
-        # Tuples consisting of two elements: first, the log loss, and second, the tuple of parameters that attained
-        # that log loss (k, home_field, season_regression).
+        # Tuples consisting of two elements: first, the log loss, and second, the dict of parameters that attained
+        # that log loss.
         self.results = []
         self.best_elo = None
         self.min_loss = 1e9
 
-    def run_one_cycle(self, k, home_field, season_regression):
+    def run_one_cycle(self, param_dict):
         """Returns elo ratings for one set of parameters."""
-        elo = EloMachine(home_team_advantage=home_field)
+        elo = EloMachine(home_team_advantage=param_dict["home_field"])
         last_year = None
         for (
             year,
@@ -241,7 +264,7 @@ class ParameterTester:
             home_score,
         ) in self.scores:
             if year != last_year:
-                elo.regress_to_mean(season_regression)
+                elo.regress_to_mean(param_dict["season_regression"])
                 last_year = year
 
             # We don't actually know which games are neutral-site games, unfortunately. We just know
@@ -259,6 +282,11 @@ class ParameterTester:
             else:
                 winning_team, losing_team = visiting_school, home_school
 
+            if "k_list" in param_dict:
+                k = param_dict["k_list"][week - 1]
+            else:
+                k = param_dict["k"]
+
             elo.update_ratings_with_result(
                 winning_team,
                 losing_team,
@@ -268,27 +296,28 @@ class ParameterTester:
             )
         return elo
 
-    def optimize(self):
+    def optimize(self, parameter_generator_obj):
         """
         Runs a full optimization cycle.
         """
         # Prime the parameter generator and get our first set of parameters.
-        parameter_generator = self.parameter_generator_obj.get_next_params()
+        parameter_generator = parameter_generator_obj.get_next_params()
         last_loss = None
         while True:
             try:
-                k, home_field, season_regression = parameter_generator.send(last_loss)
+                param_dict = parameter_generator.send(last_loss)
             except StopIteration:
                 break
             else:
-                elo = self.run_one_cycle(k, home_field, season_regression)
+                elo = self.run_one_cycle(param_dict)
                 if elo.log_loss < self.min_loss:
                     self.best_elo = elo
                     self.min_loss = elo.log_loss
                 last_loss = elo.log_loss
 
-                self.results.append((last_loss, (k, home_field, season_regression)))
-        self.results.sort()
+                self.results.append((last_loss, param_dict))
+        # Just ignore the dict element. We don't want it to be used as a tiebreaker because it isn't sortable.
+        self.results.sort(key=lambda x: x[0])
 
     def plot_one_field(self, field, outfile=None):
         """
@@ -296,10 +325,9 @@ class ParameterTester:
         """
         assert self.results
 
-        field_index = self.PARAMETERS.index(field)
         grouped_results = defaultdict(list)
         for log_loss, params in self.results:
-            grouped_results[params[field_index]].append(log_loss)
+            grouped_results[params[field]].append(log_loss)
         grouped_results_flattened = [(k, min(v)) for k, v in grouped_results.items()]
 
         x_list = []
@@ -324,13 +352,10 @@ class ParameterTester:
         """
         assert self.results
 
-        first_field_index = self.PARAMETERS.index(first_field)
-        second_field_index = self.PARAMETERS.index(second_field)
-
         grouped_results = defaultdict(list)
         for log_loss, params in self.results:
             grouped_results[
-                (params[first_field_index], params[second_field_index])
+                (params[first_field], params[second_field])
             ].append(log_loss)
         grouped_results_flattened = {k: min(v) for k, v in grouped_results.items()}
 
@@ -375,26 +400,33 @@ if __name__ == "__main__":
                     int(home_score),
                 )
             )
-    searcher = ParameterTester(scores, GridParameterGenerator())
-    searcher.optimize()
-    best_loss, best_params = searcher.results[0]
-    print("Best params after initial grid search: {}".format(best_params))
-    searcher.plot_one_field("k", outfile="k.png")
-    searcher.plot_one_field("home_field", outfile="home_field.png")
-    searcher.plot_one_field("season_regression", outfile="season_regression.png")
-    searcher.plot_two_fields("k", "home_field", outfile="k_and_home_field.png")
-    searcher.plot_two_fields(
-        "k", "season_regression", outfile="k_and_season_regression.png"
-    )
-    searcher.plot_two_fields(
-        "home_field",
-        "season_regression",
-        outfile="home_field_and_season_regression.png",
-    )
+    searcher = ParameterTester(scores)
+    skip_grid_search = True
+    if not skip_grid_search:
+        searcher.optimize(GridParameterGenerator())
+        best_loss, best_params = searcher.results[0]
+        print("Best params after initial grid search: {}".format(best_params, best_loss))
+
+    regenerate_plots = False
+    if regenerate_plots:
+        searcher.plot_one_field("k", outfile="k.png")
+        searcher.plot_one_field("home_field", outfile="home_field.png")
+        searcher.plot_one_field("season_regression", outfile="season_regression.png")
+        searcher.plot_two_fields("k", "home_field", outfile="k_and_home_field.png")
+        searcher.plot_two_fields("k", "season_regression", outfile="k_and_season_regression.png")
+        searcher.plot_two_fields("home_field", "season_regression", outfile="home_field_and_season_regression.png")
     print("\n\nNow carrying out more refined search with gradient descent...")
-    searcher.parameter_generator_obj = GradientParameterGenerator(*best_params)
-    searcher.optimize()
-    print(searcher.results[:10])
+    if skip_grid_search:
+        gradient_parameters = GradientParameterGenerator()
+    else:
+        gradient_parameters = GradientParameterGenerator(**best_params)
+    searcher.optimize(gradient_parameters)
+    best_loss, best_params = searcher.results[0]
+    print("Best params after gradient refinement: {} (loss={})".format(best_params, best_loss))
+    print("\n\nNow carrying out more refined search by allowing k to vary across weeks...")
+    searcher.optimize(GradientParameterGenerator(**best_params, allow_different_k_different_weeks=True))
+    best_loss, best_params = searcher.results[0]
+    print("Best params after allowing k to vary across weeks: {} (loss={})".format(best_params, best_loss))
     top_25 = searcher.best_elo.get_players_with_ratings_descending_order()[:25]
     print("Introducing the top 25 of 2019...")
     for i, (player, rating) in enumerate(top_25):

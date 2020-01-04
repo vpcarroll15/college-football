@@ -5,8 +5,8 @@ import subprocess
 
 
 YEARS_OF_INTEREST = list(range(2010, 2020))
-MAX_WEEK = 16
-WEEKS_IN_SEASON = list(range(1, MAX_WEEK))
+MAX_WEEK = 18
+WEEKS_IN_SEASON = list(range(15, MAX_WEEK))
 ROOT_URL = "https://www.footballdb.com/college-football/scores.html?lg=FBS"
 
 target_urls = []

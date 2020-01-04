@@ -19,7 +19,7 @@ WARMUP_YEARS = set(range(2010, 2013))
 # test set.)
 TRAINING_YEARS = set(range(2013, 2019))
 
-WEEKS_IN_SEASON = 16
+WEEKS_IN_SEASON = 18
 
 
 class WinningTeamLocation(enum.Enum):
@@ -200,6 +200,11 @@ class GradientParameterGenerator:
 
         if key == "k_list":
             for i in range(len(params["k_list"])):
+                # We deliberately don't try to optimize weeks 16 or 17 because we just don't have enough data from them.
+                # (Army might play Navy in that week, and nothing else.)
+                # (Subtract 1 because zero-indexed.)
+                if i in [15, 16]:
+                    continue
                 yield alter_params_helper(["k_list", i], delta)
                 yield alter_params_helper(["k_list", i], -delta)
         else:
@@ -228,7 +233,7 @@ class GradientParameterGenerator:
                 for test_params in self._alter_params_for_key(params, key, scaled_delta):
                     param_loss = yield test_params
                     competing_losses_and_params.append((param_loss, test_params))
-            new_best_loss, new_best_params = min(competing_losses_and_params)
+            new_best_loss, new_best_params = min(competing_losses_and_params, key=lambda x: x[0])
             if new_best_loss < best_loss:
                 best_loss = new_best_loss
                 params = new_best_params

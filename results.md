@@ -1,15 +1,16 @@
 # The question
 
-What are the best teams in college football at the end of the 2019-2020 season?
+Which are the best teams in college football?
 
 To answer this question, most people turn to the
-[College Football Playoff selection committee](https://collegefootballplayoff.com/sports/2017/10/16/selection-committee.aspx). "The committee," as
+[College Football Playoff selection committee](https://collegefootballplayoff.com/sports/2017/10/16/selection-committee.aspx).
+(There is also something called the AP poll, but nobody really cares about that.) "The committee," as
 it's cryptically known, determines which teams get to play for the national championship and which teams have to
-duke it out in the [Beef O' Brady's bowl](https://en.wikipedia.org/wiki/2011_Beef_%27O%27_Brady%27s_Bowl) (yes
-this is real). We are told that the committee's integrity is unimpeachable, and that it
+duke it out in the [Beef O' Brady's bowl](https://en.wikipedia.org/wiki/2011_Beef_%27O%27_Brady%27s_Bowl). 
+We are told that the committee's integrity is unimpeachable, and that it
 carefully considers the resume of each team before making its decision.
 
-But why take the committee's word for it? This is the twenty-first century, and we have computers and statistics.
+But why rely on the committee? This is the twenty-first century, and we have computers and statistics.
 Nothing is more objective than a computer making a list. Let's see which teams the computer thinks are the best, and
 whether there are any surprises.
 
@@ -19,108 +20,105 @@ whether there are any surprises.
 
 In order to measure the strength of each team, I decided to use the [Elo system](
 https://en.wikipedia.org/wiki/Elo_rating_system). The Elo system is *not* the most powerful method for estimating the
-strength of different competitors. Indeed, it's actually a bit old and crusty. Proposed in 1939 by a Hungarian-American
-physics professor who wanted more accurate ratings for chess players, the calculations required
-by the algorithm are simple. It is clear that it was designed by someone who lived in a world without
+strength of competitors. Indeed, it's a bit old and crusty. Proposed in 1939 by a Hungarian-American
+physics professor who wanted to devise more accurate ratings for chess players, the calculations required
+by the algorithm are simple. It's clear that it was designed by someone who lived in a world without
 powerful computers.
 
 Elo's biggest weakness is that it throws a lot of information away. In particular, it only looks at the outcomes of
-games. It doesn't care about margin of victory, which most college football fans agree is a good predictor of how
-good a team is. It also doesn't care if an important player was injured during the week at practice, or if the team
-just had a bye week. If I were training a model to help me make lots of money betting on the outcomes of college
+games. It doesn't care about margin of victory, which most college football fans agree is a good predictor of
+a team's quality. It also doesn't care if an important player was injured during the week at practice, or if the team
+is coming off a bye week. If I were training a model to help me make lots of money betting on the outcomes of college
 football games, I would want to incorporate all this information.
 
 That having been said, I like Elo for several reasons:
 
-1) It's popular. To this day, it is used in the chess world, and lots of people know what it is.
+1) It's popular. To this day, it is used in chess competitions, and lots of people know what it is.
 2) Because it is used in the chess world, I have an intuition for what the ratings mean, which I like.
 3) You, too, can develop an intuition for what Elo ratings mean! If Player A has a rating that is 200 points higher than
-player B, then Player A has a ~75% chance of winning. If Player A has a rating that is 400 points higher
-than player B, then Player A has a ~90% chance of winning. See? Now you have Elo intuition, too.
+player B, then Player A has a ~75% chance of winning. If Player A's rating is 400 points higher,
+then Player A has a ~90% chance of winning. Now you have Elo intuition, too.
 4) It's easy to program, which is important, because I am going to be programming it.
 
-Also, I love the fact that, with Elo, it's simple to determine the probability that one team will defeat another.
-As we will see, this will be the basis for optimizing our algorithm.
+Also, I love the fact that, with Elo, it's simple to estimate the probability that one team will defeat another.
+This will be the basis for optimizing our model.
 
 ## The optimization problem
 
 So, how can we create Elo rankings for college football teams?
 
-First, we need to understand that we are solving an optimization problem. Almost any ranking system is governed by
-parameters, the correct values for which depend on the activity that is being ranked. We need to set our
-parameters correctly if we want our rankings to be meaningful.
+Almost any ranking system is governed by parameters, the correct values for which depend on the activity
+that is being ranked. We need to set our parameters carefully if we want our rankings to be meaningful.
 
 ### k
 
-The most important parameter in the Elo system is a variable called *k*. *k* measures how drastically we should
-update someone's ranking after they win or lose a game. I can make this clear with an example. Let's imagine that two
-teams, the Finches and the Groundhogs, play a football game. Initially, both teams have a rating of 1000. It's a close
-game, but the Finches pull it out at the last minute with a clutch touchdown pass. How much should we update each
-team's ranking? Are the Finches now rated 1001, and the Groundhogs rated 999? Or are the Finches now rated
-1100, and the Groundhogs rated 900?
+The most important parameter in the Elo system is called *k*. *k* measures to what extent we should
+update someone's ranking after a win or loss.
 
-Without knowing more about the sport that is being played, there is no objectively correct answer to this question.
-Let's imagine for a moment that the Finches and the Groundhogs are baseball teams, and that this is the 162nd game of
-the season. Each team's Elo rating is calculated based on the previous 161 games. In this case, the fact that the
-Finches beat the Groundhogs doesn't give us much new information, and we shouldn't dramatically reconsider our opinion
-of either team. We should nudge the Finches' rating up a few points, and take a few points away from the Groundhogs,
-but that's all. This is what it means to use a small value of *k*.
+Let's imagine that two
+teams, the Finches and the Groundhogs, play a game. Initially, both teams have a rating of 1000. It's a close
+match, but the Finches pull it out at the last minute. How much should we update each
+team's ranking? Are the Finches now rated 1001, and the Groundhogs 999? Or are the Finches now rated
+1100, and the Groundhogs 900? Without knowing more about the sport that is being played,
+there is no objectively correct answer to this question.
 
-On the other hand, let's imagine that this is the first game of the football season, and that both teams are kind of a
-mystery. In this case, the fact that the Finches beat the Groundhogs does give us a lot of information, and we should
-make a bigger update to each of their ratings.
+If the Finches and the Groundhogs are baseball teams, and this is the 162nd game of
+the season, then we should only make a small update. Each team's Elo rating is based on the previous
+161 games. The fact that the Finches beat the Groundhogs doesn't give us much new information, and we shouldn't
+dramatically revise our opinion
+of either team. We nudge the Finches' rating up a few points, and we take a few points away from the Groundhogs,
+but that's all.
 
-Chess players tend to play a lot of games, and their strength changes gradually over time. For this reason, the chess
+This is what it means to use a small value of *k*.
+
+On the other hand, if this is the first game of the football season, then the fact that the Finches beat the Groundhogs
+might give us a lot of information. In this case, we should make a bigger update to each of their ratings.
+
+Chess players play a lot of games, and their strength changes gradually over time. For this reason, the chess
 ranking system has a low value of *k*: *k*=20 for most players, and *k*=10 for elite players. Significantly,
-*k*=40 is used for players under the age of eighteen. This is because young players are often
-improving rapidly, and their ratings need to be able to update quickly to reflect this.
+*k*=40 is used for players under the age of eighteen. This is because young players improve rapidly,
+and their ratings need to be able to update quickly to reflect this.
 
-Do we expect our college football rankings system to have a high or low value of *k*? (It doesn't actually matter what
+Do we expect our college football ranking system to have a high or low value of *k*? (It doesn't actually matter what
 we think, because the optimization algorithm is indifferent to our thoughts, but it's good to build intuition anyway.)
 Anyone who has watched college football knows the following:
 
 1) Teams often get much better or much worse as the season progresses.
-2) The season has at most fifteen games, and most teams only play twelve or thirteen games.
-3) Teams sometimes become much stronger or much weaker in the offseason.
+2) The season has at most fifteen games, and the majority of teams only play twelve or thirteen games.
+3) Teams can become much stronger or much weaker in the offseason.
 
 For all of these reasons, we should expect to have a high value of *k*. We will see if that actually comes to pass.
-
-What other parameters will we need to optimize? Two come to mind immediately...
 
 ### Home field advantage
 
 The Elo rating, since it was designed for chess, makes no accommodation for home field advantage, but it's
-difficult to imagine how our algorithm could have predictive power without it. Home field advantage makes a difference
-in college football. Teams often have much better home records than road records.
+difficult to imagine how our algorithm could have meaningful predictive power without it.
+Home field makes a difference in college football. Teams often have much better home records than road records.
 
-In order to wedge this into the Elo system, we will create a new variable called *home_field*. Returning to our
+To wedge this into the Elo system, we will create a new parameter called *home_field*. Returning to our
 previous example, let's imagine that the Finches played the Groundhogs at home. Previously, we said that both teams had
 a rating of 1000. But now, to account for the fact
-that the Finches are playing at home, let's increase their expected strength by *home_field* points. If
+that the Finches are playing at home, we increase their expected strength by *home_field* points. If
 *home_field*=200, then we pretend as though the Finches are rated 1200. The Groundhogs retain their old rating of 1000.
 We then predict that the Finches have a ~75% chance of winning.
-
-Of course, there is no way to know *a priori* what *home_field* should be. We are going to have to solve for it.
 
 ### Regression to the mean between seasons
 
 One final, important distinction between college football and chess is that every year in college football, the team
-becomes substantially different in the offseason.
-(Yes, I am aware that there are more differences between chess and football, but I can't think of any that
-are relevant to our statistical model!) Some years, a team gets a lot better; other times, it gets a
-lot worse. In general, though, we should expect some regression to the mean. (We have all been waiting for Alabama
-to regress to the mean for a long time...)
+becomes substantially different in the offseason. Some years, a team gets a lot better; other times, it gets a
+lot worse. In general, though, we should expect some [regression to the mean](https://en.wikipedia.org/wiki/Regression_toward_the_mean).
+(We have all been waiting for Alabama to regress to the mean for a long time...)
 
-To be frank, I think that I could probably leave this variable out of the model. Yes, college football teams become
-stronger or weaker in the offseason, but dynasties also last for a long time. The best predictor for who will
-be good next season is to look at who is good this season.
+To be frank, I think that I could leave this variable out of the model. Yes, college football teams become
+stronger or weaker in the offseason, but dynasties also last for a long time because of college football's 
+recruiting imbalances. The best predictor for who will be good next season is to look at who is good this season.
 
 Nevertheless, I don't want to make any judgment calls about what should or shouldn't be in the model. Our optimization
-algorithm can decide which variables are useful and which are not. So I will give it a variable to play with:
+algorithm can decide which variables are useful and which are not. So I will give it a parameter to play with:
 *season_regression*.
 
 It works like this: if a team's strength is 1500 at the end of the season, and the average
-strength of a team in the league is 1000, then I adjust the team's strength as follows before starting the next season:
+strength of a team in the league is 1000, then I adjust the team's strength as follows in the offseason:
 
 1000 + (1500-1000) * *season_regression*
 
@@ -129,11 +127,8 @@ with a ranking of 700.
 
 1000 + (700-1000) * *season_regression*
 
-Again, it's not clear what this variable should be set to. Something less than one, presumably...but how much less
-than one?
-
-Note that, if the optimization algorithm decides that this variable is useless, it can set it to 1.0 to make it
-irrelevant. Similarly, if the algorithm decides that home field advantage means nothing, then it can set that to 0.
+If the optimization algorithm decides that this variable is useless, it can set it to 1.0 to make it
+irrelevant.
 
 ### Our objective function
 
@@ -141,27 +136,42 @@ I have left out the most important element in our optimization problem. What var
 minimize?
 
 Qualitatively, we are trying to minimize the error of our model's predictions. If the model says that Team A has a 99%
-chance of beating Team B, and Team B wins, that is bad. We want that to happen as rarely as possible. At the same time,
-we obviously don't want our model to just always say that Team A has a 50% chance of beating Team B. That kind of model
-is useless.
+chance of beating Team B, and Team B wins, that is bad. We want that to happen as rarely as possible.
 
 We can make this goal quantitative in the following way. Let's train our model over several seasons of college
-football results. Our Elo system will assign a probability to each result, and our objective will be to choose our
-values of *k*, *home_field*, and *season_regression* to maximize the product of those probabilities. In statistics,
-this is called [maximum likelihood estimation](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation). If we
-choose good values for *k*, *home_field*, and *season_regression*, then our model shouldn't be "surprised" by the
-results of too many games.
+football results. We will feed each result into our model, and ask it to assign a probability to the result. The best
+model will be the one that maximizes the product of those probabilities. In statistics,
+this is called [maximum likelihood estimation](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation).
 
 I like maximum likelihood estimation because it rewards our model for being confident. If the model says that the
 Finches have a 90% chance of beating the Groundhogs, and the Finches win, that's great! But we prefer a model that
 assigns a 95% chance of beating the Groundhogs, or a 99% chance, and gets it right.
-By default, the Elo system doesn't assign meaningful probabilities to the outcomes of matches. By training it in this
-way, we force the probabilities to be meaningful. And this will be useful when we want to use our trained model
-to answer questions like, "How likely is it that Notre Dame will beat USC this weekend?"
+
+Here is how maximum likelihood estimation will work for our use case.
+I have access to [ten years of college football results](scores.csv), from 2010 to 2019. I will
+begin by giving every team an Elo ranking of 1000, and I will choose my values of *k*, *home_field*, and
+*season_regression*. Then I will start feeding scores into my model. I will ask it to predict the outcome of the
+contest between the Chipmunks and the Orioles, and the model will give me a probability. It then updates the Elo
+ratings of both teams according to the result. The product of all those probabilities is the quality
+of the model.
+
+If we are choosing between two models, or two sets of parameters, then we choose the one that is
+"surprised" less often. To put it another way, a good model matches the data.
+
+Because every team starts with a rating of 1000, our model will be terrible at predicting the outcome of games in the
+early years, and will take a while to "right" itself. For this reason, I ignore the probabilities that it assigns
+to games between 2010 and 2012.
+
+I also ignore the probabilities that it assigns to games in 2019, for a more subtle reason. I am hoping to measure the
+quality of my model by looking at how effectively it predicts the outcomes of games in this past season. If I train
+my model using the data from this season, then I am giving it an unfair advantage. I will be "fitting" my model's
+parameters to the data that I want to use to determine if the model is good. For more on this, see [the difference
+between training, validation, and test sets.](https://en.wikipedia.org/wiki/Training,_validation,_and_test_sets) The
+data from 2019 is my test set.
 
 ### Actually solving the problem
 
-So how do we choose *k*, *home_field*, and *season_regression* in order to maximize the likelihood of the data?
+So how do we optimize the values of *k*, *home_field*, and *season_regression*?
 
 Well, there are different strategies for doing this. 
 

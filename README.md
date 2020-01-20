@@ -147,17 +147,16 @@ early years, and will take a while to "right" itself. For this reason, I ignore 
 to games between 2010 and 2012.
 
 I also ignore the probabilities that it assigns to games in 2019, for a more subtle reason. I am hoping to measure the
-quality of my model by looking at how effectively it predicts the outcomes of games in this past season. If I train
+quality of my model by looking at how effectively it ranks teams in 2019. If I train
 my model using the data from this season, then I am giving it an unfair advantage. I would be "fitting" my model's
 parameters to the data that I want to use to determine if the model is good. For more on this, see [the difference
 between training, validation, and test sets.](https://en.wikipedia.org/wiki/Training,_validation,_and_test_sets) The
-data from 2019 is my test set.
 
 # Actually solving the problem
 
 ## Grid search
 
-So how do we optimize the values of *k*, *home_field*, and *season_regression*?
+How can we optimize the values of *k*, *home_field*, and *season_regression*?
 
 Well, there are different strategies for doing this. Fortunately, because we only have three variables to optimize over,
 a simple approach is open to us called [grid search](https://towardsdatascience.com/grid-search-for-model-tuning-3319b259367e).
@@ -165,11 +164,7 @@ a simple approach is open to us called [grid search](https://towardsdatascience.
 It works like this. First, we define "reasonable ranges" for each of the three variables. Based on what
 we know from chess, a reasonable value for *k* is between 10 and 80. *home_field* should be between 0 and 200, and
 *season_regression* should be between 0.5 and 1. Next, we scan across all three variables and consider all
-possible combinations. We evaluate the quality of the model with (k=10, home_field=0, season_regression=0.5), and
-then the quality of the model with (k=10, home_field=0, season_regression=0.6), then (k=10, home_field=0,
-season_regression=0.7), and so on. When we reach
-(k=10, home_field=0, season_regression=1.0), we proceed to (k=10, home_field=20, season_regression=0.5). We continue
-in this manner until we reach (k=80, home_field=200, season_regression=1.0).
+possible combinations at a fixed, coarse resolution.
 
 Grid search is not efficient. If you're trying to optimize a model with dozens or hundreds of parameters, it
 simply doesn't work. There are too many combinations to consider. But, since we're lucky to have just three variables,
@@ -190,7 +185,7 @@ The second and third graphs are what we expect to see. A good value for *home_fi
 good value for *season_regression* is around 0.9. If we deviate in either direction, the model loses predictive power.
 
 The first graph is surprising, though, because the optimal value for *k* is all the way over on the right. This means
-that our initial "reasonable" range for our grid search--from between 10 and 80--may not have been wide enough! If we
+that our initial "reasonable" range for our grid search--from between 10 and 80--was not wide enough! If we
 allowed our optimizer to choose a value of *k* that was even higher than 80, then we might be able to improve our
 model further.
 
@@ -200,12 +195,10 @@ This surprised me! I didn't expect the optimal value of *k* to be more than four
 Let's rerun our grid search at a higher resolution, and with a "reasonable range" for *k* of between 10 and 150.
 
 ![k vs log loss](k.png)
-![home_field vs log loss](home_field.png)
-![season_regression vs log loss](season_regression.png)
 
 Now the first graph is the same shape as the others! Our optimal value for *k* is around 100.
 
-Let's look at some fancier graphs, to consider how the log loss varies as *two* parameters change.
+Let's look at some fancier graphs, to consider how the log loss varies as *two* parameters change jointly.
 
 ![k and home field vs log loss](k_and_home_field.png)
 ![k and season regression vs log loss](k_and_season_regression.png)

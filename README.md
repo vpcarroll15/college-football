@@ -238,7 +238,7 @@ The grid search, despite its simplicity, found a set of parameters that was pret
 
 Before we reveal the best teams in college football according to our model, there is one more thing that I want to try.
 
-Thus far, we have used the same value of *k* to update our rankings after every week of the college football season.
+Thus far, we have used the same value of *k* to update our ratings after every week of the college football season.
 This seems suboptimal. Early in the season, when we know less about the true quality of teams, we should expect to make
 bigger updates to their ratings. Later in the season, assuming that we have discovered "true" ratings, the magnitude of
 the updates should shrink.
@@ -247,34 +247,33 @@ What if we allowed the value of *k* to vary over the course of the season?
 
 This would mean that, instead of optimizing over three parameters, we would optimize over eighteen parameters. We will
 still have *home_field* and *season_regression*, but we'll also have a separate value of *k* for each of the sixteen
-weeks of the college football season: *k<sub>1</sub>* for Week 1, *k<sub>2</sub>* for Week 2, etc.
+weeks of the college football season: *k<sub>1</sub>* for Week 1, *k<sub>2</sub>* for Week 2, and so on.
 
-(Yes, sixteen is the correct number. Twelve games + two bye weeks + conference championship + bowl game.)
+(Yes, sixteen is the correct number. Twelve games + two bye weeks + the conference championship + the bowl game.)
 
 If we want to optimize a function with eighteen parameters, grid search is no longer a viable option. We can't do
-a combinatorial search over eighteen variables, except at a resolution that would be too coarse to be useful.
-Fortunately, gradient descent is still up to the task!
+a combinatorial search over eighteen variables. Fortunately, gradient descent is still up to the task!
 
 Here are the optimal values of *k*, if we allow *k* to vary throughout the season:
 
 ![optimal k](k_over_weeks.png)
 
 This mostly matches our intuition! In the early games, we should make big updates to the estimated
-strength of each team. This allows our model to quickly "correct" for any turmoil or team-building that happened
+strength of each team. This allows our model to quickly "correct" for any turmoil or team-building 
 in the offseason. By the time that we reach week 5, our estimate of the "strength" of each team has stabilized,
 and the optimal value of *k* drops. It continues to decline until week 14, which is the last
 week of the regular season. Our model is 3x more sensitive to the results of games at the beginning of the season than
 at the end of it.
 
 Something interesting happens in weeks 15 and 16--the conference championship and the bowl game. The optimal value of
-*k* is higher for these weeks than at the end of the regular season. Why? We can only speculate, since gradient
-descent doesn't give us an answer. My guess is that these games receive a bigger "weighting" because they provide more
-information about the "true strength" of teams than a random game at the end of the season. In the conference
+*k* is higher for these weeks than at the end of the regular season. Why?
+My guess is that these games receive a bigger "weight" because they provide more
+information about the "true strength" of teams than a random game at the end of the regular season. In the conference
 championship, we get to see high-quality teams play each other. In the bowl game, teams from *different*
 conferences play each other, which is especially useful to help our model to calibrate itself.
 
-Allowing *k* to vary, our log loss drops from 2764.81 to 2731.22. The difference isn't transformative, but the model
-is probably somewhat better.
+When we allow *k* to vary, our log loss drops from 2764.81 to 2731.22. The difference isn't transformative, but the
+model probably becomes somewhat better.
 
 # The rankings
 
@@ -307,14 +306,14 @@ ranking, and how that team's ranking compares to where it finished in the poll.
 24) UCF (1362) (+0)
 25) Washington (1342) (not included in poll)
 
-I will leave it to readers to evaluate the quality of these rankings! I do think that they pass a basic sanity test,
-though. I'll admit that I was relieved to see the national champion and national runner-up at the top.
+I will leave it to readers to evaluate the quality of these rankings! I do think that they pass a basic sanity check,
+though. I was relieved to see the national champion and runner-up at the top.
 
 The model groups LSU, Clemson, Alabama, and Ohio State into an elite class of teams.
 Notice how their ratings are significantly higher than Georgia's, and how Georgia's is significantly
 higher than a tightly clustered group of schools (Oklahoma,
-Notre Dame, Florida, Penn State, Oregon). The pollsters severely punished Alabama for a close loss to Auburn at home,
-but come on...does anyone really believe that Alabama is only the eighth-best team in the nation? :)
+Notre Dame, Florida, Penn State, Oregon). The pollsters punished Alabama for a close loss to Auburn at home,
+but come on...does anyone really believe that Alabama is only the eighth-best team in the nation?
 
 Another team that leaps out to me on this list is Baylor, which my model thinks is overrated. The reason for this
 is clear to me...Baylor's schedule isn't very good. My model cares a lot about strength of schedule. Wins against
@@ -322,4 +321,4 @@ bad opponents barely increase a team's rating at all. My model is also unsympath
 close losses, and Baylor had two close losses to Oklahoma. A more sophisticated model would consider margin of victory.
 
 Finally, I'd like to point out that my model believes that Notre Dame is underrated. Believe it or not,
-this pleasing result was not engineered by me in any way.
+this pleasing result was not engineered by me in any way. :)

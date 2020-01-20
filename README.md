@@ -82,13 +82,12 @@ college football knows the following:
 2) The season has at most fifteen games, and the majority of teams only play twelve or thirteen games.
 3) Teams can become much stronger or much weaker in the offseason.
 
-For all of these reasons, we should expect to have a high value of *k*. We will see if the optimization algorithm
-agrees.
+For all of these reasons, we should expect to have a high value of *k*.
 
 ## Home field advantage
 
 The Elo rating, since it was designed for chess, makes no accommodation for home field advantage, but it's
-difficult to imagine how our algorithm could have meaningful predictive power without it.
+difficult to imagine how our algorithm could be maximally effective without being aware of it.
 Home field makes a difference in college football. Teams often have much better home records than road records.
 
 To wedge this into the Elo system, we will create a new parameter called *home_field*. Returning to our
@@ -98,15 +97,12 @@ that the Finches are playing at home, we increase their expected strength by *ho
 *home_field*=200, then we pretend as though the Finches are rated 1200. The Groundhogs retain their old rating of 1000.
 We then predict that the Finches have a ~75% chance of winning.
 
-If our optimization algorithm decides that home field advantage doesn't matter, then it can always set it to 0 and
-cancel it out of the model.
-
 ## Regression to the mean between seasons
 
-One final, important distinction between college football and chess is that every year in college football, the team
-becomes substantially different in the offseason. Some years, a team gets a lot better; other times, it gets a
+One final, important difference between college football and chess is that every year in college football, the team
+transforms in the offseason. Some years, a team gets a lot better; other times, it gets a
 lot worse. In general, though, we should expect some [regression to the mean](https://en.wikipedia.org/wiki/Regression_toward_the_mean).
-(We have all been waiting for Alabama to regress to the mean for a long time...) I will address this with a parameter
+(We have all been waiting for Alabama to regress to the mean for a long time...) I will account for this with a parameter
 called *season_regression.*
 
 It works like this: if a team's strength is 1500 at the end of the season, and the average
@@ -114,13 +110,10 @@ strength of a team in the league is 1000, then I adjust the team's strength as f
 
 1000 + (1500-1000) * *season_regression*
 
-If a team is weaker than average at the end of the season, then I adjust it toward the mean, too. Let's consider a team
+If a team is weaker than average at the end of the season, then I adjust it toward the mean in the same way. Let's consider a team
 with a ranking of 700.
 
 1000 + (700-1000) * *season_regression*
-
-If the optimization algorithm decides that this variable is useless, then it can set it to 1.0 to make it
-irrelevant.
 
 ## Our objective function
 
@@ -141,10 +134,9 @@ assigns a 95% chance of beating the Groundhogs, or a 99% chance, and gets it rig
 
 Here is how maximum likelihood estimation will work for our use case.
 I have access to [ten years of college football results](scores.csv), from 2010 to 2019. I will
-begin by giving every team an Elo ranking of 1000, and I will choose my values of *k*, *home_field*, and
-*season_regression*. Then I will start feeding scores into my model. I will ask it to predict the outcome of the
-contest between the Chipmunks and the Orioles, and the model will give me a probability. It then updates the Elo
-ratings of both teams according to the result. The product of all those probabilities is the quality
+begin by giving every team an Elo ranking of 1000, and I will choose some values for *k*, *home_field*, and
+*season_regression*. Then I will start feeding scores into my model. I will ask it to predict the outcome of each
+contest, and the model will give me a probability. The product of all those probabilities is the quality
 of the model.
 
 If we are choosing between two models, or two sets of parameters, then we choose the one that is

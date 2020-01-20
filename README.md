@@ -150,7 +150,7 @@ I also ignore the probabilities that it assigns to games in 2019, for a more sub
 quality of my model by looking at how effectively it ranks teams in 2019. If I train
 my model using the data from this season, then I am giving it an unfair advantage. I would be "fitting" my model's
 parameters to the data that I want to use to determine if the model is good. For more on this, see [the difference
-between training, validation, and test sets.](https://en.wikipedia.org/wiki/Training,_validation,_and_test_sets) The
+between training, validation, and test sets.](https://en.wikipedia.org/wiki/Training,_validation,_and_test_sets)
 
 # Actually solving the problem
 
@@ -278,7 +278,7 @@ model probably becomes somewhat better.
 # The rankings
 
 Here are the top 25 teams at the end of the 2019-2020 season, according to my model. I've also included each team's Elo
-ranking, and how that team's ranking compares to where it finished in the poll.
+rating, and how that team's ranking compares to where it finished in the poll.
 
 1) LSU (1789) (+0)
 2) Clemson (1765) (+0)

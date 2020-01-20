@@ -11,19 +11,20 @@ We are told that the committee's integrity is unimpeachable, and that it
 carefully considers the resume of each team before making its decision.
 
 But why rely on the committee? This is the twenty-first century, and we have computers and statistics.
-Nothing is more objective than a computer making a list. Let's see which teams the computer thinks are the best, and
+Nothing is more objective than a computer making a list. Let's see which teams the computer thinks are best, and
 whether there are any surprises.
 
-If you want to skip straight to the [ratings](#the-rankings), please feel free! Most of this README is going to be about how those
-ratings were generated.
+If you want to skip straight to the [rankings](#the-rankings), please feel free! Most of this README is going to be
+about how those rankings were generated, and how you should think about them.
 
 # The Elo system
 
 In order to measure the strength of each team, I decided to use the [Elo system](
 https://en.wikipedia.org/wiki/Elo_rating_system). The Elo system is *not* the most powerful method for estimating the
-strength of competitors. Indeed, it's a bit old and crusty. Proposed in 1939 by a Hungarian-American
-physics professor who wanted to devise more accurate ratings for chess players, the calculations required
-by the algorithm are simple. It was designed by someone who lived in a world without powerful computers.
+strength of teams. Instead, it's a bit old and crusty. Proposed in 1939 by a Hungarian-American
+physics professor who wanted more accurate ratings for chess players, the calculations required
+by the algorithm are simple. It was designed by someone who lived in a world without powerful computers or
+[Monte Carlo simulations](https://towardsdatascience.com/the-house-always-wins-monte-carlo-simulation-eb82787da2a3).
 
 Elo's biggest weakness is that it throws a lot of information away. In particular, it only looks at the outcomes of
 games. It doesn't care about margin of victory, which most college football fans agree is a good measure of
@@ -35,13 +36,10 @@ That having been said, I like Elo for several reasons:
 
 1) It's popular. To this day, it is used in chess competitions, and lots of people know what it is.
 2) Because it is used in the chess world, I have an intuition for what the ratings mean, which I like.
-3) You, too, can develop an intuition for what Elo ratings mean! If Player A has a rating that is 200 points higher than
-player B, then Player A has a ~75% chance of winning. If Player A's rating is 400 points higher,
+3) You, too, can develop an intuition for what Elo ratings mean! If Player A's rating is 200 points higher than
+Player B's, then Player A has a ~75% chance of winning. If Player A's rating is 400 points higher,
 then Player A has a ~90% chance of winning. Now you have Elo intuition, too.
 4) It's easy to program, which is important, because I am going to be programming it.
-
-Also, I love the fact that, with Elo, it's simple to estimate the probability that one team will defeat another.
-This will be the basis for optimizing our model.
 
 # The optimization problem
 
@@ -58,10 +56,10 @@ update someone's ranking after a win or loss.
 Let's imagine that two
 teams, the Finches and the Groundhogs, play a game. Initially, both teams have a rating of 1000. It's a close
 match, but the Finches pull it out at the last minute. How much should we update each
-team's ranking? Are the Finches now rated 1001, and the Groundhogs 999? Or are the Finches now rated
+team's rating? Are the Finches now rated 1001, and the Groundhogs 999? Or are the Finches now rated
 1100, and the Groundhogs 900?
 
-If the Finches and the Groundhogs are baseball teams, and this is the 162nd game of
+If these are baseball teams, and this is the 162nd game of
 the season, then we should only make a small update. Each team's Elo rating is based on the previous
 161 games. The fact that the Finches beat the Groundhogs doesn't give us much new information, and we shouldn't
 dramatically revise our opinion
@@ -69,10 +67,11 @@ of either team. We nudge the Finches' rating up a few points, and we take a few 
 This is what it means to use a small value of *k*.
 
 On the other hand, if this is the first game of the football season, then the fact that the Finches beat the Groundhogs
-might give us a lot of information. In this case, we should make a bigger update to each of their ratings.
+might give us a lot of information. Each team's current rating doesn't represent a prior that we are confident in.
+In this case, we should make a bigger update to each of their ratings.
 
-Chess players play a lot of games, and their strength changes gradually over time. For this reason, the chess
-ranking system has a low value of *k*: *k*=20 for most players, and *k*=10 for elite players. Significantly,
+Chess players play a lot of games, and their strength changes gradually over time. For this reason, the governing body
+for chess uses a low value of *k*: *k*=20 for most players, and *k*=10 for elite players. Significantly,
 *k*=40 is used for players under the age of eighteen. This is because young players improve rapidly,
 and their ratings need to be able to update quickly to reflect this.
 

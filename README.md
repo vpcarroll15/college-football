@@ -302,29 +302,29 @@ Here are the top 25 teams at the end of the 2019-2020 season, according to my mo
 ranking, and how that team's ranking compares to where it finished in the poll.
 
 1) LSU (1789) (+0)
-2) Clemson (1765) (+1)
-3) Alabama (1697) (+10)
-4) Ohio State (1680) (-2)
-5) Georgia (1606) (+0)
-6) Oklahoma (1564) (-2)
-7) Notre Dame (1549) (+8)
-8) Florida (1522) (+1)
-9) Penn State (1520) (+1)
-10) Oregon (1519) (-4)
-11) Michigan (1466) (+3)
-12) Auburn (1425) (+0)
-13) Minnesota (1420) (+5)
-14) Iowa (1418) (+2)
-15) Wisconsin (1406) (-7)
+2) Clemson (1765) (+0)
+3) Alabama (1697) (+5)
+4) Ohio State (1680) (-1)
+5) Georgia (1606) (-1)
+6) Oklahoma (1564) (+1)
+7) Notre Dame (1549) (+5)
+8) Florida (1522) (-2)
+9) Penn State (1520) (+0)
+10) Oregon (1519) (-5)
+11) Michigan (1466) (+7)
+12) Auburn (1425) (+2)
+13) Minnesota (1420) (-3)
+14) Iowa (1418) (+1)
+15) Wisconsin (1406) (-4)
 16) Texas A&M (1391) (not included in poll)
-17) Utah (1389) (-6)
-18) Texas (1377) (not included in poll)
+17) Utah (1389) (-1)
+18) Texas (1377) (+7)
 19) Memphis (1371) (-2)
 20) Cincinnati (1370) (+1)
-21) Appalachian State (1369) (not included in poll)
-22) Boise State (1368) (-3)
-23) Baylor (1364) (-16)
-24) UCF (1362) (not included in poll)
+21) Appalachian State (1369) (-2)
+22) Boise State (1368) (+1)
+23) Baylor (1364) (-10)
+24) UCF (1362) (+0)
 25) Washington (1342) (not included in poll)
 
 I will leave it to readers to evaluate the quality of these rankings! I do think that they pass a basic sanity test,
@@ -334,7 +334,7 @@ The model groups LSU, Clemson, Alabama, and Ohio State into an elite class of te
 Notice how their ratings are significantly higher than Georgia's, and how Georgia's is significantly
 higher than a tightly clustered group of schools (Oklahoma,
 Notre Dame, Florida, Penn State, Oregon). The pollsters severely punished Alabama for a close loss to Auburn at home,
-but come on...does anyone really believe that Alabama is only the thirteenth-best team in the nation? :)
+but come on...does anyone really believe that Alabama is only the eighth-best team in the nation? :)
 
 Another team that leaps out to me on this list is Baylor, which my model thinks is overrated. The reason for this
 is clear to me...Baylor's schedule isn't very good. My model cares a lot about strength of schedule. Wins against

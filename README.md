@@ -204,37 +204,33 @@ Let's look at some fancier graphs, to consider how the log loss varies as *two* 
 ![k and season regression vs log loss](k_and_season_regression.png)
 ![home_field and season regression vs log loss](home_field_and_season_regression.png)
 
-There are two important things to notice about the graphs that I have presented:
-
-1) The optimal values for the parameters. For the 3D graphs, this means the (x, y) coordinates at the "bluest" point.
-2) The fact that all of these graphs are [*convex*](https://www.solver.com/convex-optimization).
-
-"Convex" basically just means that we are trying to optimize a function that is "bowl-shaped." Convex functions are
-pretty easy to optimize, because you just need to find the point at the bottom of the bowl.
-
-## Gradient descent
-
-Now that we have made a found a good guess for the optimal values of our parameters with grid search, we should refine
-them further with [gradient descent](https://ml-cheatsheet.readthedocs.io/en/latest/gradient_descent.html).
-
-I am not going to try to explain in full how gradient descent works. There are lots of good explanations online, including
-in the link that I chose! But basically, the idea is that we take small steps down the slope of our objective function
-until we arrive at a point from which we can't descend any further. This is a local minimum of the objective function.
-Because the function that we are trying to optimize is convex, we can further say that it is the
-[global minimum](https://math.stackexchange.com/questions/1591520/what-is-difference-between-maxima-or-minima-and-global-maxima-or-minima).
-We will have the optimal parameters at last!
+Each of these graphs is [*convex*](https://www.solver.com/convex-optimization), or "bowl-shaped." This is important
+because convex functions are easy to optimize, and there are lots of out-of-the-box solvers that do it. You just
+need to find the point at the bottom of the bowl.
 
 The best parameters discovered by grid search were:
 
 {*k*: 100, *home_field*: 60, *season_regression*: 0.9}
 
-The log loss at this point was 2765.68.
+The log loss at this point is 2765.68.
 
-After refinement with gradient descent, our parameters became:
+## Gradient descent
+
+Now that we have a good guess for the optimal values of our parameters, we can refine
+them further with [gradient descent](https://ml-cheatsheet.readthedocs.io/en/latest/gradient_descent.html).
+
+I am not going to try to explain how gradient descent works. There are lots of good explanations online, including
+in the link that I chose! But basically, the idea is that we take small steps down the slope of our objective function
+until we arrive at the bottom. This is a local minimum.
+Because the function that we are trying to optimize is convex, we will also know that it is the
+[global minimum](https://math.stackexchange.com/questions/1591520/what-is-difference-between-maxima-or-minima-and-global-maxima-or-minima),
+and the best parameters that we can possibly find.
+
+Here are those optimal parameters:
 
 {*k*: 96.66, *home_field*: 54.55, *season_regression*: 0.92}
 
-The log loss at this point was 2764.81.
+The log loss at this point is 2764.81.
 
 The grid search, despite its simplicity, found a set of parameters that was pretty close to optimal!
 

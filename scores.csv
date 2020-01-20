@@ -4163,7 +4163,6 @@
 2014,18,Nevada,3,Louisiana-Lafayette,16
 2014,18,North Carolina State,34,UCF,27
 2014,18,Notre Dame,31,LSU,28
-2014,18,Ohio State,42,Alabama,35
 2014,18,Ohio State,42,Oregon,20
 2014,18,Oklahoma,6,Clemson,40
 2014,18,Rutgers,40,North Carolina,21
@@ -4174,6 +4173,7 @@
 2014,18,Utah State,21,UTEP,6
 2014,18,Washington,22,Oklahoma State,30
 2014,18,Western Michigan,24,Air Force,38
+2014,18,Ohio State,42,Alabama,35
 2015,1,Abilene Christian,13,Fresno State,34
 2015,1,Akron,3,Oklahoma,41
 2015,1,Alabama A&M,10,Cincinnati,52
@@ -5005,7 +5005,6 @@
 2015,14,West Virginia,23,Kansas State,24
 2015,15,Army,17,Navy,21
 2015,18,Akron,23,Utah State,21
-2015,18,Alabama,45,Clemson,40
 2015,18,Arizona,45,New Mexico,37
 2015,18,Arkansas State,28,Louisiana Tech,47
 2015,18,Auburn,31,Memphis,10
@@ -5045,6 +5044,7 @@
 2015,18,Washington,44,Southern Mississippi,31
 2015,18,West Virginia,43,Arizona State,42
 2015,18,Western Kentucky,45,South Florida,35
+2015,18,Alabama,45,Clemson,40
 2016,1,Abilene Christian,21,Air Force,37
 2016,1,Alabama A&M,0,Middle Tennessee State,55
 2016,1,Alabama State,13,UTSA,26
@@ -5885,7 +5885,6 @@
 2016,18,BYU,24,Wyoming,21
 2016,18,Boise State,12,Baylor,31
 2016,18,Central Michigan,10,Tulsa,55
-2016,18,Clemson,35,Alabama,31
 2016,18,Eastern Michigan,20,Old Dominion,24
 2016,18,Florida,30,Iowa,3
 2016,18,Georgia,31,TCU,23
@@ -5918,6 +5917,7 @@
 2016,18,Washington,7,Alabama,24
 2016,18,West Virginia,14,Miami,31
 2016,18,Western Michigan,16,Wisconsin,24
+2016,18,Clemson,35,Alabama,31
 2017,1,Abilene Christian,14,New Mexico,38
 2017,1,Akron,0,Penn State,52
 2017,1,Alabama A&M,7,UAB,38
@@ -6753,7 +6753,6 @@
 2017,14,Troy,32,Arkansas State,25
 2017,15,Army,14,Navy,13
 2017,18,Akron,3,Florida Atlantic,50
-2017,18,Alabama,24,Clemson,6
 2017,18,Alabama,26,Georgia,23
 2017,18,Appalachian State,34,Toledo,0
 2017,18,Arizona,35,Purdue,38
@@ -6792,6 +6791,7 @@
 2017,18,Washington State,17,Michigan State,42
 2017,18,Western Kentucky,17,Georgia State,27
 2017,18,Wisconsin,34,Miami,24
+2017,18,Alabama,24,Clemson,6
 2018,1,Abilene Christian,27,Baylor,55
 2018,1,Albany,7,Pittsburgh,33
 2018,1,Alcorn State,0,Georgia Tech,41
@@ -7642,7 +7642,6 @@
 2018,18,Buffalo,32,Troy,42
 2018,18,California,7,TCU,10
 2018,18,Cincinnati,35,Virginia Tech,31
-2018,18,Clemson,44,Alabama,16
 2018,18,FIU,35,Toledo,32
 2018,18,Florida,41,Michigan,15
 2018,18,Georgia Southern,23,Eastern Michigan,21
@@ -7675,6 +7674,7 @@
 2018,18,Washington,23,Ohio State,28
 2018,18,West Virginia,18,Syracuse,34
 2018,18,Western Michigan,18,BYU,49
+2018,18,Clemson,44,Alabama,16
 2019,1,Abilene Christian,31,North Texas,51
 2019,1,Akron,3,Illinois,42
 2019,1,Alabama State,19,UAB,24
@@ -8539,6 +8539,7 @@
 2019,18,Georgia State,17,Wyoming,38
 2019,18,Indiana,22,Tennessee,23
 2019,18,Liberty,23,Georgia Southern,16
+2019,18,Louisiana,27,Miami (OH),17
 2019,18,Louisiana Tech,14,Miami,0
 2019,18,Memphis,39,Penn State,53
 2019,18,Michigan,16,Alabama,35
@@ -8554,9 +8555,11 @@
 2019,18,Oregon,28,Wisconsin,27
 2019,18,Pittsburgh,34,Eastern Michigan,30
 2019,18,SMU,28,Florida Atlantic,52
+2019,18,Southern Mississippi,13,Tulane,30
 2019,18,UCF,48,Marshall,25
 2019,18,USC,24,Iowa,49
 2019,18,Utah,10,Texas,38
 2019,18,Utah State,41,Kent State,51
 2019,18,Virginia Tech,30,Kentucky,37
 2019,18,Western Kentucky,23,Western Michigan,20
+2019,18,Clemson,25,LSU,42

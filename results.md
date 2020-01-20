@@ -14,9 +14,7 @@ But why rely on the committee? This is the twenty-first century, and we have com
 Nothing is more objective than a computer making a list. Let's see which teams the computer thinks are the best, and
 whether there are any surprises.
 
-# The method
-
-## The Elo system
+# The Elo system
 
 In order to measure the strength of each team, I decided to use the [Elo system](
 https://en.wikipedia.org/wiki/Elo_rating_system). The Elo system is *not* the most powerful method for estimating the
@@ -42,14 +40,14 @@ then Player A has a ~90% chance of winning. Now you have Elo intuition, too.
 Also, I love the fact that, with Elo, it's simple to estimate the probability that one team will defeat another.
 This will be the basis for optimizing our model.
 
-## The optimization problem
+# The optimization problem
 
 So, how can we create Elo rankings for college football teams?
 
 Most ranking systems, Elo included, are governed by parameters, the correct values for which depend on the activity
 that is being ranked. We need to set our parameters carefully if we want our rankings to be meaningful.
 
-### k
+## k
 
 The most important parameter in the Elo system is called *k*. *k* measures to what extent we should
 update someone's ranking after a win or loss.
@@ -85,7 +83,7 @@ college football knows the following:
 For all of these reasons, we should expect to have a high value of *k*. We will see if the optimization algorithm
 agrees.
 
-### Home field advantage
+## Home field advantage
 
 The Elo rating, since it was designed for chess, makes no accommodation for home field advantage, but it's
 difficult to imagine how our algorithm could have meaningful predictive power without it.
@@ -101,7 +99,7 @@ We then predict that the Finches have a ~75% chance of winning.
 If our optimization algorithm decides that home field advantage doesn't matter, then it can always set it to 0 and
 cancel it out of the model.
 
-### Regression to the mean between seasons
+## Regression to the mean between seasons
 
 One final, important distinction between college football and chess is that every year in college football, the team
 becomes substantially different in the offseason. Some years, a team gets a lot better; other times, it gets a
@@ -122,7 +120,7 @@ with a ranking of 700.
 If the optimization algorithm decides that this variable is useless, then it can set it to 1.0 to make it
 irrelevant.
 
-### Our objective function
+## Our objective function
 
 I have left out the most important element in our optimization problem. What variable are we trying to maximize or
 minimize?
@@ -161,48 +159,184 @@ parameters to the data that I want to use to determine if the model is good. For
 between training, validation, and test sets.](https://en.wikipedia.org/wiki/Training,_validation,_and_test_sets) The
 data from 2019 is my test set.
 
-### Actually solving the problem
+# Actually solving the problem
+
+## Grid search
 
 So how do we optimize the values of *k*, *home_field*, and *season_regression*?
 
 Well, there are different strategies for doing this. Fortunately, because we only have three variables to optimize over,
-a very simple approach is open to us called a [grid search](https://towardsdatascience.com/grid-search-for-model-tuning-3319b259367e).
+a simple approach is open to us called [grid search](https://towardsdatascience.com/grid-search-for-model-tuning-3319b259367e).
 
 It works like this. First, we define "reasonable ranges" for each of the three variables. Based on what
 we know from chess, a reasonable value for *k* is between 10 and 80. *home_field* should be between 0 and 200, and
 *season_regression* should be between 0.5 and 1. Next, we scan across all three variables and consider all
-possible combinations. So we evaluate the quality of the model with (k=10, home_field=0, season_regression=0.5), and
-then the quality of the model with (k=10, home_field=0, season_regression=0.6), and so on. When we reach
+possible combinations. We evaluate the quality of the model with (k=10, home_field=0, season_regression=0.5), and
+then the quality of the model with (k=10, home_field=0, season_regression=0.6), then (k=10, home_field=0,
+season_regression=0.7), and so on. When we reach
 (k=10, home_field=0, season_regression=1.0), we proceed to (k=10, home_field=20, season_regression=0.5). We continue
 in this manner until we reach (k=80, home_field=200, season_regression=1.0).
 
 Grid search is not efficient. If you're trying to optimize a model with dozens or hundreds of parameters, it
 simply doesn't work. There are too many combinations to consider. But, since we're lucky to have just three variables,
-we should take advantage of grid search's nice advantages:
+grid search is open to us. And it has some great advantages!
 
 1) It is dead simple to implement.
 2) It produces graphs that help us gain intuition for what we're trying to optimize.
 
 What kind of graphs? I'm glad you asked! Here is how the log loss varies as a function of each of our three variables.
-(Log loss is the thing that we are trying to minimize. You can think of it as how surprised the model is by the
-results of the games.)
+(Log loss is the technical term for the quantity that we are trying to minimize. You can think of it as how surprised
+the model is by the results of the games.)
 
 ![k vs log loss](k_small_grid.png)
 ![home_field vs log loss](home_field_small_grid.png)
 ![season_regression vs log loss](season_regression_small_grid.png)
 
-The second and third graphs are what we expect to see. A good value for *home_field* appears to be around 50, and a
-good value for *season_regression* appears to be around 0.9. If we deviate in either direction, the model gets worse.
+The second and third graphs are what we expect to see. A good value for *home_field* is around 50, and a
+good value for *season_regression* is around 0.9. If we deviate in either direction, the model loses predictive power.
 
 The first graph is surprising, though, because the optimal value for *k* is all the way over on the right. This means
 that our initial "reasonable" range for our grid search--from between 10 and 80--may not have been wide enough! If we
-allowed our optimizer to choose a value of *k* that was even higher than 80, then we could improve our model even
-further.
+allowed our optimizer to choose a value of *k* that was even higher than 80, then we might be able to improve our
+model further.
 
-This really surprised me! I didn't expect the optimal value of *k* to be more than four times greater than the value of
+This surprised me! I didn't expect the optimal value of *k* to be more than four times greater than the value of
 *k* used in chess.
 
-Let's rerun our grid search at a higher resolution, and with a 
+Let's rerun our grid search at a higher resolution, and with a "reasonable range" for *k* of between 10 and 150.
 
+![k vs log loss](k.png)
+![home_field vs log loss](home_field.png)
+![season_regression vs log loss](season_regression.png)
 
+Now the first graph is the same shape as the others! Our optimal value for *k* is around 100.
 
+Let's look at some fancier graphs, to consider how the log loss varies as *two* parameters change.
+
+![k and home field vs log loss](k_and_home_field.png)
+![k and season regression vs log loss](k_and_season_regression.png)
+![home_field and season regression vs log loss](home_field_and_season_regression.png)
+
+There are two important things to notice about the graphs that I have presented:
+
+1) The optimal values for the parameters. For the 3D graphs, this means the (x, y) coordinates at the "bluest" point.
+2) The fact that all of these graphs are [*convex*](https://www.solver.com/convex-optimization).
+
+"Convex" basically just means that we are trying to optimize a function that is "bowl-shaped." Convex functions are
+pretty easy to optimize, because you just need to find the point at the bottom of the bowl.
+
+## Gradient descent
+
+Now that we have made a found a good guess for the optimal values of our parameters with grid search, we should refine
+them further with [gradient descent](https://ml-cheatsheet.readthedocs.io/en/latest/gradient_descent.html).
+
+I am not going to try to explain in full how gradient descent works. There are lots of good explanations online, including
+in the link that I chose! But basically, the idea is that we take small steps down the slope of our objective function
+until we arrive at a point from which we can't descend any further. This is a local minimum of the objective function.
+Because the function that we are trying to optimize is convex, we can further say that it is the
+[global minimum](https://math.stackexchange.com/questions/1591520/what-is-difference-between-maxima-or-minima-and-global-maxima-or-minima).
+We will have the optimal parameters at last!
+
+The best parameters discovered by grid search were:
+
+{*k*: 100, *home_field*: 60, *season_regression*: 0.9}
+
+The log loss at this point was 2765.68.
+
+After refinement with gradient descent, our parameters became:
+
+{*k*: 96.66, *home_field*: 54.55, *season_regression*: 0.92}
+
+The log loss at this point was 2764.81.
+
+The grid search, despite its simplicity, found a set of parameters that was pretty close to optimal!
+
+## Allowing k to vary across weeks
+
+Before we reveal the best teams in college football according to our model, there is one more thing that I want to try.
+
+Thus far, we have used the same value of *k* to update our rankings after every week of the college football season.
+This seems suboptimal. Early in the season, when we know less about the true quality of teams, we should expect to make
+bigger updates to their ratings. Later in the season, assuming that we have discovered "true" ratings, the magnitude of
+the updates should shrink.
+
+What if we allowed the value of *k* to vary over the course of the season?
+
+This would mean that, instead of optimizing over three parameters, we would optimize over eighteen parameters. We will
+still have *home_field* and *season_regression*, but we'll also have a separate value of *k* for each of the sixteen
+weeks of the college football season: *k<sub>1</sub>* for Week 1, *k<sub>2</sub>* for Week 2, etc.
+
+(Yes, sixteen is the correct number. Twelve games + two bye weeks + conference championship + bowl game.)
+
+If we want to optimize a function with eighteen parameters, grid search is no longer a viable option. We can't do
+a combinatorial search over eighteen variables, except at a resolution that would be too coarse to be useful.
+Fortunately, gradient descent is still up to the task!
+
+Here are the optimal values of *k*, if we allow *k* to vary throughout the season:
+
+![optimal k](k_over_weeks.png)
+
+This mostly matches our intuition! In the early games, we should make big updates to the estimated
+strength of each team. This allows our model to quickly "correct" for any turmoil or team-building that happened
+in the offseason. By the time that we reach week 5, our estimate of the "strength" of each team has stabilized,
+and the optimal value of *k* drops. It continues to decline until week 14, which is the last
+week of the regular season. Our model is 3x more sensitive to the results of games at the beginning of the season than
+at the end of it.
+
+Something interesting happens in weeks 15 and 16--the conference championship and the bowl game. The optimal value of
+*k* is higher for these weeks than at the end of the regular season. Why? We can only speculate, since gradient
+descent doesn't give us an answer. My guess is that these games receive a bigger "weighting" because they provide more
+information about the "true strength" of teams than a random game at the end of the season. In the conference
+championship, we get to see high-quality teams play each other. In the bowl game, teams from *different*
+conferences play each other, which is especially useful to help our model to calibrate itself.
+
+Allowing *k* to vary, our log loss drops from 2764.81 to 2731.22. The difference isn't transformative, but the model
+is probably somewhat better.
+
+# The rankings
+
+Here are the top 25 teams at the end of the 2019-2020 season, according to my model. I've also included each team's Elo
+ranking, and how that team's ranking compares to where it finished in the poll.
+
+1) LSU (1789) (+0)
+2) Clemson (1765) (+1)
+3) Alabama (1697) (+10)
+4) Ohio State (1680) (-2)
+5) Georgia (1606) (+0)
+6) Oklahoma (1564) (-2)
+7) Notre Dame (1549) (+8)
+8) Florida (1522) (+1)
+9) Penn State (1520) (+1)
+10) Oregon (1519) (-4)
+11) Michigan (1466) (+3)
+12) Auburn (1425) (+0)
+13) Minnesota (1420) (+5)
+14) Iowa (1418) (+2)
+15) Wisconsin (1406) (-7)
+16) Texas A&M (1391) (not included in poll)
+17) Utah (1389) (-6)
+18) Texas (1377) (not included in poll)
+19) Memphis (1371) (-2)
+20) Cincinnati (1370) (+1)
+21) Appalachian State (1369) (not included in poll)
+22) Boise State (1368) (-3)
+23) Baylor (1364) (-16)
+24) UCF (1362) (not included in poll)
+25) Washington (1342) (not included in poll)
+
+I will leave it to readers to evaluate the quality of these rankings! I do think that they pass a basic sanity test,
+though. I'll admit that I was relieved to see the national champion and national runner-up at the top.
+
+The model groups LSU, Clemson, Alabama, and Ohio State into an elite class of teams.
+Notice how their ratings are significantly higher than Georgia's, and how Georgia's is significantly
+higher than a tightly clustered group of schools (Oklahoma,
+Notre Dame, Florida, Penn State, Oregon). The pollsters severely punished Alabama for a close loss to Auburn at home,
+but come on...does anyone really believe that Alabama is only the thirteenth-best team in the nation? :)
+
+Another team that leaps out to me on this list is Baylor, which my model thinks is overrated. The reason for this
+is clear to me...Baylor's schedule isn't very good. My model cares a lot about strength of schedule. Wins against
+bad opponents barely increase a team's rating at all. My model is also unsympathetic to teams that suffer
+close losses, and Baylor had two close losses to Oklahoma. A more sophisticated model would consider margin of victory.
+
+Finally, I'd like to point out that my model believes that Notre Dame is underrated. Believe it or not,
+this pleasing result was not engineered by me in any way.

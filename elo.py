@@ -466,7 +466,12 @@ if __name__ == "__main__":
             best_params, best_loss
         )
     )
-    top_25 = searcher.best_elo.get_players_with_ratings_descending_order()[:25]
+    players_and_rankings = searcher.best_elo.get_players_with_ratings_descending_order()
+    top_25 = players_and_rankings[:25]
     print("Introducing the top 25 of 2019...")
     for i, (player, rating) in enumerate(top_25):
         print("{}) {} ({})".format(i + 1, player, int(rating)))
+    bottom_25 = players_and_rankings[-25:]
+    print("And the bottom top 25 of 2019...")
+    for i, (player, rating) in enumerate(bottom_25):
+        print("{}) {} ({})".format(len(players_and_rankings) - 24 + i, player, int(rating)))

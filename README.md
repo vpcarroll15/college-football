@@ -14,7 +14,7 @@ But why rely on the committee? This is the twenty-first century, and we have com
 Nothing is more objective than a computer making a list. Let's see which teams the computer thinks are the best, and
 whether there are any surprises.
 
-If you want to skip straight to the [ratings](#The rankings), please feel free! Most of this README is going to be about how those
+If you want to skip straight to the [ratings](#the-rankings), please feel free! Most of this README is going to be about how those
 ratings were generated.
 
 # The Elo system
